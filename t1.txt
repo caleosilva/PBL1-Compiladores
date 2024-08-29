@@ -1,0 +1,6 @@
+class ExampleClass extends BaseClass {
+    variables intVar = -3-9.7;
+    ExampleClass.falou("Meu nome /*eh*/ class")
+    "// Teste aqui"
+    // Teste la
+}
