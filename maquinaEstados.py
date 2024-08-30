@@ -5,7 +5,6 @@ class AnalisadorLexico:
         self.numero_da_linha = numero_da_linha  # Número da linha do código sendo analisado
         self.tabela_de_simbolos = []  # Tabela de símbolos encontrada
         self.lexema = ""  # Lexema atual em construção
-        self.estado_atual = "q0"  # Estado inicial
         self.keywords = [
             "variables", "methods", "constants", "class", "return", "empty", "main",
             "if", "then", "else", "while", "for", "read", "write", "integer", "float",
@@ -23,11 +22,12 @@ class AnalisadorLexico:
         if self.cabeca < len(self.fita):
             char = self.fita[self.cabeca]
             if self.is_letter(char):
-                self.estado_atual = "q1"
                 self.lexema += char
-            self.cabeca += 1
-        else:
-            self.estado_atual = "fim"
+                self.cabeca += 1
+                self.q1()  # Transição direta para q1
+            else:
+                self.cabeca += 1
+                self.q0()  # Continua no estado q0 para ler o próximo caractere
 
     def q1(self):
         """Estado q1 para acumular letras, dígitos ou underscore."""
@@ -36,6 +36,7 @@ class AnalisadorLexico:
             if self.is_letter(char) or self.is_digit(char) or char == "_":
                 self.lexema += char
                 self.cabeca += 1
+                self.q1()  # Continua no estado q1 até encontrar um caractere inválido
             else:
                 # Verifica se é palavra-chave ou identificador
                 if self.lexema in self.keywords:
@@ -45,7 +46,7 @@ class AnalisadorLexico:
                 
                 # Reseta o lexema e volta ao estado q0
                 self.lexema = ""
-                self.estado_atual = "q0"
+                self.q0()
         else:
             # Finaliza o último token se houver
             if self.lexema:
@@ -53,16 +54,10 @@ class AnalisadorLexico:
                     self.tabela_de_simbolos.append((self.lexema, "keyword", self.numero_da_linha))
                 else:
                     self.tabela_de_simbolos.append((self.lexema, "identifier", self.numero_da_linha))
-            self.estado_atual = "fim"
 
     def analisar(self):
         """Função para iniciar a análise."""
-        while self.estado_atual != "fim":
-            if self.estado_atual == "q0":
-                self.q0()
-            elif self.estado_atual == "q1":
-                self.q1()
-
+        self.q0()  # Começa no estado q0
         return self.tabela_de_simbolos
 
 # Exemplo de uso
