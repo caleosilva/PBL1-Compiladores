@@ -37,6 +37,10 @@ class AnalisadorLexico:
                 self.lexema += char
                 self.avancar_cabeca()
                 self.q3()  # Transição direta para q3
+            elif char == "'":  # Início de um caractere
+                self.lexema += char
+                self.avancar_cabeca()
+                self.q4()  # Transição direta para q4
             else:
                 self.avancar_cabeca()
                 self.q0()  # Continua no estado q0 para ler o próximo caractere
@@ -98,6 +102,38 @@ class AnalisadorLexico:
             # Fim da fita e string não foi fechada
             self.erros.append((self.lexema, "Erro: String não fechada", self.numero_da_linha))
 
+    def q4(self):
+        """Estado q4 para tratar caracteres."""
+        if self.cabeca < len(self.fita):
+            char = self.fita[self.cabeca]
+            if char == '"':  # Erro: Aspas duplas dentro de um caractere
+                self.erros.append((self.lexema + char, "Erro: Aspas duplas em caractere", self.numero_da_linha))
+                self.lexema = ""
+                self.avancar_cabeca()
+                self.q0()  # Retorna ao estado q0 para continuar a análise
+            elif 32 <= ord(char) <= 126 and char != "'":
+                self.lexema += char
+                self.avancar_cabeca()
+                if self.cabeca < len(self.fita) and self.fita[self.cabeca] == "'":
+                    self.lexema += "'"
+                    self.avancar_cabeca()
+                    self.tabela_de_simbolos.append((self.lexema, "char", self.numero_da_linha))
+                    self.lexema = ""
+                    self.q0()  # Volta ao estado q0 após fechar o caractere
+                else:
+                    self.erros.append((self.lexema, "Erro: Caractere não fechado", self.numero_da_linha))
+                    self.lexema = ""
+                    self.q0()  # Continua a análise no estado q0
+            else:
+                self.erros.append((self.lexema + char, "Erro: Caractere inválido", self.numero_da_linha))
+                self.lexema = ""
+                self.avancar_cabeca()
+                self.q0()  # Retorna ao estado q0 para continuar a análise
+
+        if self.cabeca >= len(self.fita):
+            # Fim da fita e caractere não foi fechado
+            self.erros.append((self.lexema, "Erro: Caractere não fechado", self.numero_da_linha))
+
     def analisar(self):
         """Função para iniciar a análise."""
         self.q0()  # Começa no estado q0
@@ -105,7 +141,7 @@ class AnalisadorLexico:
 
 # Exemplo de uso
 fita = '''
-main "hello world" 'invalido' "string' sem fechar
+main 'a' 'b" "hello world" 'c
 '''
 analisador = AnalisadorLexico(fita)
 tokens, erros = analisador.analisar()
