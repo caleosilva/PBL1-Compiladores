@@ -11,6 +11,8 @@ class AnalisadorLexico:
             "if", "then", "else", "while", "for", "read", "write", "integer", "float",
             "boolean", "string", "true", "false", "extends"
         ]
+        self.delimiters = {'(': ')', '{': '}', '[': ']'}
+        self.delimiter_stack = []  # Pilha para verificar correspondência de delimitadores
 
     def is_letter(self, char):
         return char.isalpha()
@@ -41,6 +43,10 @@ class AnalisadorLexico:
                 self.lexema += char
                 self.avancar_cabeca()
                 self.q4()  # Transição direta para q4
+            elif char in self.delimiters or char in self.delimiters.values() or char in [';', ',']:
+                self.lexema += char
+                self.avancar_cabeca()
+                self.q5()  # Transição direta para q5
             else:
                 self.avancar_cabeca()
                 self.q0()  # Continua no estado q0 para ler o próximo caractere
@@ -134,14 +140,43 @@ class AnalisadorLexico:
             # Fim da fita e caractere não foi fechado
             self.erros.append((self.lexema, "Erro: Caractere não fechado", self.numero_da_linha))
 
+    def q5(self):
+        """Estado q5 para tratar delimitadores."""
+        char = self.fita[self.cabeca - 1]  # Caracter já avançado na fita
+        
+        # Verifica se é um delimitador de abertura
+        if char in self.delimiters:
+            self.delimiter_stack.append((char, self.numero_da_linha))
+        # Verifica se é um delimitador de fechamento
+        elif char in self.delimiters.values():
+            if not self.delimiter_stack:
+                self.erros.append((char, "Erro: Delimitador de fechamento sem abertura correspondente", self.numero_da_linha))
+            else:
+                last_open, line = self.delimiter_stack.pop()
+                if self.delimiters[last_open] != char:
+                    self.erros.append((char, f"Erro: Delimitador de fechamento '{char}' não corresponde ao delimitador de abertura '{last_open}' na linha {line}", self.numero_da_linha))
+        
+        self.tabela_de_simbolos.append((char, "delimiter", self.numero_da_linha))
+        self.lexema = ""
+        self.q0()  # Volta ao estado q0 para continuar a leitura
+
+    def verificar_fim_fita(self):
+        """Verifica se todos os delimitadores foram fechados ao final da fita."""
+        while self.delimiter_stack:
+            delimiter, line = self.delimiter_stack.pop()
+            self.erros.append((delimiter, f"Erro: Delimitador de abertura '{delimiter}' na linha {line} não foi fechado", line))
+
     def analisar(self):
         """Função para iniciar a análise."""
         self.q0()  # Começa no estado q0
+        self.verificar_fim_fita()  # Verifica correspondência de delimitadores no fim
         return self.tabela_de_simbolos, self.erros
 
 # Exemplo de uso
 fita = '''
-main 'a' 'b" "hello world" 'c
+main { 
+    print(b;
+}
 '''
 analisador = AnalisadorLexico(fita)
 tokens, erros = analisador.analisar()
