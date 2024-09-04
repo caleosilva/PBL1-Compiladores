@@ -2,23 +2,29 @@ class AnalisadorLexico:
     def __init__(self, file_path, numero_da_linha=1):
         self.cabeca = 0  # Cabeça de leitura
         self.fita = ""  # Inicialmente vazia, será preenchida pelo conteúdo do arquivo
-        self.numero_da_linha = numero_da_linha  # Número da linha do código sendo analisado
+        # Número da linha do código sendo analisado
+        self.numero_da_linha = numero_da_linha
         self.tabela_de_simbolos = []  # Tabela de símbolos encontrada
         self.erros = []  # Lista de erros encontrados
         self.lexema = ""  # Lexema atual em construção
-        self.identificadores = {}  # Dicionário para armazenar identificadores com números associados
-        self.contador_identificadores = 1  # Contador para atribuir números aos identificadores
+        # Dicionário para armazenar identificadores com números associados
+        self.identificadores = {}
+        # Contador para atribuir números aos identificadores
+        self.contador_identificadores = 1
         self.keywords = [
             "variables", "methods", "constants", "class", "return", "empty", "main",
             "if", "then", "else", "while", "for", "read", "write", "integer", "float",
             "boolean", "string", "true", "false", "extends"
         ]
+        self.operators = ['+', '-', '*', '/', '=',
+                          '>', '<', '!', '&', '|', '.', ';']
         self.delimiters = {'(': ')', '{': '}', '[': ']'}
         self.delimiter_stack = []  # Pilha para verificar correspondência de delimitadores
-        self.operators = ['+', '-', '*', '/', '=', '>', '<', '!', '&', '|', '.', ';']
-        self.ler_arquivo(file_path)  # Lê o conteúdo do arquivo e armazena em fita
 
+        self.comentarios = []  # Lista de comentários encontrados
 
+        # Lê o conteúdo do arquivo e armazena em fita
+        self.ler_arquivo(file_path)
 
     def is_letter(self, char):
         return char.isalpha()
@@ -29,7 +35,8 @@ class AnalisadorLexico:
     def is_operator(self, char):
         """Verifica se o caractere é um operador."""
         return char in self.operators
-        
+        # return char in ['+', '-', '*', '/', '=', '>', '<', '!', '&', '|', '.', ';']
+
     def ler_arquivo(self, file_path):
         """Lê o arquivo e armazena o conteúdo na fita."""
         try:
@@ -56,7 +63,7 @@ class AnalisadorLexico:
             elif self.is_operator(char):
                 self.lexema += char
                 self.avancar_cabeca()
-                self.q2()  # Transição direta para q2 
+                self.q2()  # Transição para q2 para tratar operadores
             elif char == '"':  # Início de uma string
                 self.lexema += char
                 self.avancar_cabeca()
@@ -77,7 +84,6 @@ class AnalisadorLexico:
                 self.avancar_cabeca()
                 self.q0()  # Continua no estado q0 para ler o próximo caractere
 
-
     def q1(self):
         """Estado q1 para acumular letras, dígitos ou underscore."""
         if self.cabeca < len(self.fita):
@@ -89,16 +95,18 @@ class AnalisadorLexico:
             else:
                 # Verifica se é palavra-chave ou identificador
                 if self.lexema in self.keywords:
-                    self.tabela_de_simbolos.append((self.lexema, "keyword", self.numero_da_linha))
+                    self.tabela_de_simbolos.append(
+                        (self.lexema, "keyword", self.numero_da_linha))
                 else:
                     # Verifica se o identificador já existe na tabela de identificadores
                     if self.lexema not in self.identificadores:
                         self.contador_identificadores += 1
                         self.identificadores[self.lexema] = self.contador_identificadores
-                    
+
                     # Adiciona o número associado ao identificador na tabela de símbolos
                     numero_associado = self.identificadores[self.lexema]
-                    self.tabela_de_simbolos.append((numero_associado, "identifier", self.numero_da_linha))
+                    self.tabela_de_simbolos.append(
+                        (numero_associado, "identifier", self.numero_da_linha))
 
                 # Reseta o lexema e volta ao estado q0
                 self.lexema = ""
@@ -107,48 +115,56 @@ class AnalisadorLexico:
             # Finaliza o último token se houver
             if self.lexema:
                 if self.lexema in self.keywords:
-                    self.tabela_de_simbolos.append((self.lexema, "keyword", self.numero_da_linha))
+                    self.tabela_de_simbolos.append(
+                        (self.lexema, "keyword", self.numero_da_linha))
                 else:
                     # Verifica se o identificador já existe na tabela de identificadores
                     if self.lexema not in self.identificadores:
                         self.contador_identificadores += 1
                         self.identificadores[self.lexema] = self.contador_identificadores
-                    
+
                     # Adiciona o número associado ao identificador na tabela de símbolos
                     numero_associado = self.identificadores[self.lexema]
-                    self.tabela_de_simbolos.append((numero_associado, "identifier", self.numero_da_linha))
+                    self.tabela_de_simbolos.append(
+                        (numero_associado, "identifier", self.numero_da_linha))
 
     def q2(self):
-        """Estado q2 para tratar operadores."""
+        """Estado q2 para tratar operadores e detectar comentários."""
         if self.cabeca < len(self.fita):
-            char = self.fita[self.cabeca]
-            if self.lexema == '/':  # Pode ser início de comentário
-                if char == '/':
-                    self.lexema += char
-                    self.avancar_cabeca()
-                    self.q6(tipo='linha')  # Comentário de linha
-                elif char == '*':
-                    self.lexema += char
-                    self.avancar_cabeca()
-                    self.q6(tipo='bloco')  # Comentário de bloco
+            char = self.fita[self.cabeca - 1]
+            print("self.cabeca: ", self.cabeca - 1, )
+            print("char: ", char, )
+            if char == '/':
+                # self.avancar_cabeca()
+                if self.cabeca < len(self.fita):
+                    next_char = self.fita[self.cabeca]
+                    print("self.cabeca: ", self.cabeca, )
+                    print("next_char: ", next_char, "\n\n")
+
+                    if next_char == '/':
+                        # self.avancar_cabeca()
+                        self.q6()  # Comentário de linha
+                    elif next_char == '*':
+                        # self.avancar_cabeca()
+                        self.q6()  # Comentário de bloco
+                    else:
+                        # Se não for um comentário, processa como um operador normal
+                        self.tabela_de_simbolos.append(
+                            (char, "operator", self.numero_da_linha))
+                        self.lexema = ""
+                        self.q0()  # Volta ao estado q0
                 else:
+                    # Se apenas um `/` foi encontrado
                     self.tabela_de_simbolos.append(
-                        (self.lexema, "operator", self.numero_da_linha))
+                        (char, "operator", self.numero_da_linha))
                     self.lexema = ""
-                    self.q0()  # Volta para o estado inicial após tratar o operador
-            elif char in ['+', '-', '*', '/', '=', '!', '>', '<', '&', '|']:
-                if self.lexema + char in ['==', '!=', '>=', '<=', '&&', '||', '++', '--']:
-                    self.lexema += char
-                    self.avancar_cabeca()
-                self.tabela_de_simbolos.append(
-                    (self.lexema, "operator", self.numero_da_linha))
-                self.lexema = ""
-                self.q0()  # Volta para o estado inicial após tratar o operador
+                    self.q0()  # Volta ao estado q0
             else:
+                # Se não for um `/`, processa como um operador normal
                 self.tabela_de_simbolos.append(
-                    (self.lexema, "operator", self.numero_da_linha))
+                    (char, "operator", self.numero_da_linha))
                 self.lexema = ""
-                self.q0()  # Volta para o estado inicial após tratar o operador
+                self.q0()  # Volta ao estado q0
 
     def q3(self):
         """Estado q3 para tratar strings."""
@@ -236,37 +252,46 @@ class AnalisadorLexico:
         self.lexema = ""
         self.q0()  # Volta ao estado q0 para continuar a leitura
 
-    def q6(self, tipo):
+    def q6(self):
         """Estado q6 para tratar comentários."""
-        if tipo == 'linha':
-            while self.cabeca < len(self.fita):
-                char = self.fita[self.cabeca]
-                if char == '\n':  # Fim do comentário de linha
+        if self.cabeca < len(self.fita):
+            char = self.fita[self.cabeca]
+            if char == '/':
+                # Comentário de linha
+                self.tabela_de_simbolos.append("//")
+                while self.cabeca < len(self.fita) and self.fita[self.cabeca] != '\n':
+                    self.lexema += char
                     self.avancar_cabeca()
-                    self.q0()  # Volta para o estado inicial após o comentário de linha
-                    break
-                else:
-                    self.avancar_cabeca()  # Continua consumindo o comentário
-            else:
-                self.q0()  # Fim do arquivo, retorna ao estado inicial
 
-        elif tipo == 'bloco':
-            linha_inicial = self.numero_da_linha  # Armazena a linha onde o bloco começou
-            while self.cabeca < len(self.fita):
-                char = self.fita[self.cabeca]
-                if char == '*':  # Possível fechamento do bloco
+                self.comentarios.append(
+                    (self.lexema, "comments", self.numero_da_linha))
+                self.lexema = ""
+
+                self.avancar_cabeca()  # Avançar para passar o '\n'
+                self.q0()  # Volta ao estado q0 após o fim do comentário de linha
+            elif char == '*':
+                # Comentário de bloco
+                self.tabela_de_simbolos.append("/*")
+                self.avancar_cabeca()
+                while self.cabeca < len(self.fita):
+                    char = self.fita[self.cabeca]
+                    self.lexema += char
+                    if char == '*' and self.cabeca + 1 < len(self.fita) and self.fita[self.cabeca + 1] == '/':
+                        self.avancar_cabeca()  # Avançar para o '/'
+                        self.avancar_cabeca()  # Avançar para após o '/'
+
+                        self.comentarios.append(
+                            (self.lexema, "comments", self.numero_da_linha))
+                        self.lexema = ""
+
+                        self.tabela_de_simbolos.append("*/")
+                        self.q0()  # Volta ao estado q0 após o fim do comentário de bloco
+                        return
                     self.avancar_cabeca()
-                    if self.cabeca < len(self.fita) and self.fita[self.cabeca] == '/':
-                        self.avancar_cabeca()
-                        self.q0()  # Volta para o estado inicial após o fechamento do bloco
-                        break
-                else:
-                    self.avancar_cabeca()
-            else:
-                # Se não encontrar o fechamento do bloco até o final do arquivo, gera um erro
-                self.erros.append(
-                    ("/*", "Erro: Bloco de comentário não fechado", linha_inicial))
-                self.q0()  # Volta para o estado inicial após emitir o erro
+                # Se o comentário de bloco não for fechado
+                self.erros.append(("Comentario de bloco não fechado",
+                                  "Erro: Comentário de bloco não fechado", self.numero_da_linha))
+                self.q0()  # Volta ao estado q0
 
     def q7(self):
         """Estado q7 para tratar números."""
@@ -282,25 +307,27 @@ class AnalisadorLexico:
                 self.avancar_cabeca()
             else:
                 # Se encontra qualquer outra coisa, encerra o número
-                self.tabela_de_simbolos.append((self.lexema, "number", self.numero_da_linha))
+                self.tabela_de_simbolos.append(
+                    (self.lexema, "number", self.numero_da_linha))
                 self.lexema = ""
                 self.q0()  # Volta para o estado inicial
                 return
 
         # Se a fita terminar enquanto ainda estamos no estado q7, finalize o número
         if self.lexema:
-            self.tabela_de_simbolos.append((self.lexema, "number", self.numero_da_linha))
+            self.tabela_de_simbolos.append(
+                (self.lexema, "number", self.numero_da_linha))
             self.lexema = ""
 
     def analisar(self):
         """Função para iniciar a análise."""
         self.q0()  # Começa no estado q0
-        return self.tabela_de_simbolos, self.identificadores, self.erros
+        return self.tabela_de_simbolos, self.identificadores, self.comentarios, self.erros
 
 
 file_path = './t1.txt'
 analisador = AnalisadorLexico(file_path)
-tokens, identificadores, erros = analisador.analisar()
+tokens, identificadores, comentarios, erros = analisador.analisar()
 
 print("Tokens:")
 for token in tokens:
@@ -310,11 +337,10 @@ print("\nIdentificadores:")
 for identificador, numero in identificadores.items():
     print(f"{numero}: {identificador}")
 
+print("Comentarios:")
+for com in comentarios:
+    print(com)
+
 print("\nErros:")
 for erro in erros:
     print(erro)
-
-
-
-
-# ATENÇÃO: DEVE DAR UM STRIP PARA REMOVER OS /N, JÁ QUE NO COMENTARIO EM BLOCO ELE APARECE. OU SERIA MELHOR TRATAR ISSO ESPECIFICO DO COMENTARIO?
