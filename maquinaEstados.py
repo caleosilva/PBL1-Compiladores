@@ -112,9 +112,16 @@ class AnalisadorLexico:
 
     def q3(self):
         """Estado q3 para tratar strings."""
+        linha_inicial = self.numero_da_linha  # Armazena a linha onde a string começou
         while self.cabeca < len(self.fita):
             char = self.fita[self.cabeca]
-            if 32 <= ord(char) <= 126 and char not in ('"', "'"):
+            if char == '\n':  # Verifica se a linha terminou
+                self.erros.append(
+                    (self.lexema, "Erro: String não fechada antes do fim da linha", linha_inicial))
+                self.lexema = ""
+                self.q0()  # Volta ao estado q0 após emitir o erro
+                break
+            elif 32 <= ord(char) <= 126 and char not in ('"', "'"):
                 self.lexema += char
                 self.avancar_cabeca()
             elif char == '"':  # Fim da string
@@ -139,7 +146,8 @@ class AnalisadorLexico:
         if self.cabeca >= len(self.fita) and self.lexema:
             # Fim da fita e string não foi fechada
             self.erros.append(
-                (self.lexema, "Erro: String não fechada", self.numero_da_linha))
+                (self.lexema, "Erro: String não fechada antes do fim da fita", linha_inicial))
+
 
     def q4(self):
         """Estado q4 para tratar caracteres."""
