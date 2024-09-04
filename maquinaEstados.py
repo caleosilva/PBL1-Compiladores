@@ -1,20 +1,23 @@
 class AnalisadorLexico:
-    def __init__(self, fita, numero_da_linha=1):
+    def __init__(self, file_path, numero_da_linha=1):
         self.cabeca = 0  # Cabeça de leitura
-        self.fita = fita  # Conteúdo a ser analisado
-        # Número da linha do código sendo analisado
-        self.numero_da_linha = numero_da_linha
+        self.fita = ""  # Inicialmente vazia, será preenchida pelo conteúdo do arquivo
+        self.numero_da_linha = numero_da_linha  # Número da linha do código sendo analisado
         self.tabela_de_simbolos = []  # Tabela de símbolos encontrada
         self.erros = []  # Lista de erros encontrados
         self.lexema = ""  # Lexema atual em construção
+        self.identificadores = {}  # Dicionário para armazenar identificadores com números associados
+        self.contador_identificadores = 1  # Contador para atribuir números aos identificadores
         self.keywords = [
             "variables", "methods", "constants", "class", "return", "empty", "main",
             "if", "then", "else", "while", "for", "read", "write", "integer", "float",
             "boolean", "string", "true", "false", "extends"
         ]
         self.delimiters = {'(': ')', '{': '}', '[': ']'}
-        self.identificadores = {}  # Tabela de identificadores com numeração
-        self.contador_identificadores = 0  # Contador para numeração crescente
+        self.delimiter_stack = []  # Pilha para verificar correspondência de delimitadores
+        
+        self.ler_arquivo(file_path)  # Lê o conteúdo do arquivo e armazena em fita
+
 
 
     def is_letter(self, char):
@@ -22,6 +25,14 @@ class AnalisadorLexico:
 
     def is_digit(self, char):
         return char.isdigit()
+
+    def ler_arquivo(self, file_path):
+        """Lê o arquivo e armazena o conteúdo na fita."""
+        try:
+            with open(file_path, 'r') as file:
+                self.fita = file.read()
+        except IOError as e:
+            print(f"Erro ao ler o arquivo: {e}")
 
     def avancar_cabeca(self):
         """Avança a cabeça de leitura e atualiza o número da linha, se necessário."""
@@ -190,7 +201,8 @@ main {
     print(b;
 }
 '''
-analisador = AnalisadorLexico(fita)
+file_path = './t1.txt'
+analisador = AnalisadorLexico(file_path)
 tokens, identificadores, erros = analisador.analisar()
 
 print("Tokens:")
