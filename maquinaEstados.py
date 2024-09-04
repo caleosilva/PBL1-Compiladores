@@ -2,7 +2,8 @@ class AnalisadorLexico:
     def __init__(self, fita, numero_da_linha=1):
         self.cabeca = 0  # Cabeça de leitura
         self.fita = fita  # Conteúdo a ser analisado
-        self.numero_da_linha = numero_da_linha  # Número da linha do código sendo analisado
+        # Número da linha do código sendo analisado
+        self.numero_da_linha = numero_da_linha
         self.tabela_de_simbolos = []  # Tabela de símbolos encontrada
         self.erros = []  # Lista de erros encontrados
         self.lexema = ""  # Lexema atual em construção
@@ -62,10 +63,12 @@ class AnalisadorLexico:
             else:
                 # Verifica se é palavra-chave ou identificador
                 if self.lexema in self.keywords:
-                    self.tabela_de_simbolos.append((self.lexema, "keyword", self.numero_da_linha))
+                    self.tabela_de_simbolos.append(
+                        (self.lexema, "keyword", self.numero_da_linha))
                 else:
-                    self.tabela_de_simbolos.append((self.lexema, "identifier", self.numero_da_linha))
-                
+                    self.tabela_de_simbolos.append(
+                        (self.lexema, "identifier", self.numero_da_linha))
+
                 # Reseta o lexema e volta ao estado q0
                 self.lexema = ""
                 self.q0()
@@ -73,9 +76,11 @@ class AnalisadorLexico:
             # Finaliza o último token se houver
             if self.lexema:
                 if self.lexema in self.keywords:
-                    self.tabela_de_simbolos.append((self.lexema, "keyword", self.numero_da_linha))
+                    self.tabela_de_simbolos.append(
+                        (self.lexema, "keyword", self.numero_da_linha))
                 else:
-                    self.tabela_de_simbolos.append((self.lexema, "identifier", self.numero_da_linha))
+                    self.tabela_de_simbolos.append(
+                        (self.lexema, "identifier", self.numero_da_linha))
 
     def q2(self):
         """Estado q2 vazio."""
@@ -91,29 +96,34 @@ class AnalisadorLexico:
             elif char == '"':  # Fim da string
                 self.lexema += char
                 self.avancar_cabeca()
-                self.tabela_de_simbolos.append((self.lexema, "string", self.numero_da_linha))
+                self.tabela_de_simbolos.append(
+                    (self.lexema, "string", self.numero_da_linha))
                 self.lexema = ""
                 self.q0()  # Volta ao estado q0 após fechar a string
                 break
             elif char == "'":  # Erro: Aspas simples dentro da string
-                self.erros.append((self.lexema + char, "Erro: Aspas simples em string", self.numero_da_linha))
+                self.erros.append(
+                    (self.lexema + char, "Erro: Aspas simples em string", self.numero_da_linha))
                 self.lexema += char  # Continua adicionando ao lexema
                 self.avancar_cabeca()
             else:
-                self.erros.append((self.lexema, "Erro: String não fechada", self.numero_da_linha))
+                self.erros.append(
+                    (self.lexema, "Erro: String não fechada", self.numero_da_linha))
                 self.lexema = ""
                 break
 
         if self.cabeca >= len(self.fita) and self.lexema:
             # Fim da fita e string não foi fechada
-            self.erros.append((self.lexema, "Erro: String não fechada", self.numero_da_linha))
+            self.erros.append(
+                (self.lexema, "Erro: String não fechada", self.numero_da_linha))
 
     def q4(self):
         """Estado q4 para tratar caracteres."""
         if self.cabeca < len(self.fita):
             char = self.fita[self.cabeca]
             if char == '"':  # Erro: Aspas duplas dentro de um caractere
-                self.erros.append((self.lexema + char, "Erro: Aspas duplas em caractere", self.numero_da_linha))
+                self.erros.append(
+                    (self.lexema + char, "Erro: Aspas duplas em caractere", self.numero_da_linha))
                 self.lexema = ""
                 self.avancar_cabeca()
                 self.q0()  # Retorna ao estado q0 para continuar a análise
@@ -123,40 +133,35 @@ class AnalisadorLexico:
                 if self.cabeca < len(self.fita) and self.fita[self.cabeca] == "'":
                     self.lexema += "'"
                     self.avancar_cabeca()
-                    self.tabela_de_simbolos.append((self.lexema, "char", self.numero_da_linha))
+                    self.tabela_de_simbolos.append(
+                        (self.lexema, "char", self.numero_da_linha))
                     self.lexema = ""
                     self.q0()  # Volta ao estado q0 após fechar o caractere
                 else:
-                    self.erros.append((self.lexema, "Erro: Caractere não fechado", self.numero_da_linha))
+                    self.erros.append(
+                        (self.lexema, "Erro: Caractere não fechado", self.numero_da_linha))
                     self.lexema = ""
                     self.q0()  # Continua a análise no estado q0
             else:
-                self.erros.append((self.lexema + char, "Erro: Caractere inválido", self.numero_da_linha))
+                self.erros.append(
+                    (self.lexema + char, "Erro: Caractere inválido", self.numero_da_linha))
                 self.lexema = ""
                 self.avancar_cabeca()
                 self.q0()  # Retorna ao estado q0 para continuar a análise
 
         if self.cabeca >= len(self.fita):
             # Fim da fita e caractere não foi fechado
-            self.erros.append((self.lexema, "Erro: Caractere não fechado", self.numero_da_linha))
+            self.erros.append(
+                (self.lexema, "Erro: Caractere não fechado", self.numero_da_linha))
 
     def q5(self):
-        """Estado q5 para tratar delimitadores."""
-        char = self.fita[self.cabeca - 1]  # Caracter já avançado na fita
-        
-        # Verifica se é um delimitador de abertura
-        if char in self.delimiters:
-            self.delimiter_stack.append((char, self.numero_da_linha))
-        # Verifica se é um delimitador de fechamento
-        elif char in self.delimiters.values():
-            if not self.delimiter_stack:
-                self.erros.append((char, "Erro: Delimitador de fechamento sem abertura correspondente", self.numero_da_linha))
-            else:
-                last_open, line = self.delimiter_stack.pop()
-                if self.delimiters[last_open] != char:
-                    self.erros.append((char, f"Erro: Delimitador de fechamento '{char}' não corresponde ao delimitador de abertura '{last_open}' na linha {line}", self.numero_da_linha))
-        
-        self.tabela_de_simbolos.append((char, "delimiter", self.numero_da_linha))
+        """Estado q5 simplificado para tratar delimitadores."""
+        char = self.fita[self.cabeca - 1]  # Caractere já avançado na fita
+
+        if char in self.delimiters or char in self.delimiters.values() or char in [';', ',']:
+            self.tabela_de_simbolos.append(
+                (char, "delimiter", self.numero_da_linha))
+
         self.lexema = ""
         self.q0()  # Volta ao estado q0 para continuar a leitura
 
@@ -164,13 +169,15 @@ class AnalisadorLexico:
         """Verifica se todos os delimitadores foram fechados ao final da fita."""
         while self.delimiter_stack:
             delimiter, line = self.delimiter_stack.pop()
-            self.erros.append((delimiter, f"Erro: Delimitador de abertura '{delimiter}' na linha {line} não foi fechado", line))
+            self.erros.append(
+                (delimiter, f"Erro: Delimitador de abertura '{delimiter}' na linha {line} não foi fechado", line))
 
     def analisar(self):
         """Função para iniciar a análise."""
         self.q0()  # Começa no estado q0
         self.verificar_fim_fita()  # Verifica correspondência de delimitadores no fim
         return self.tabela_de_simbolos, self.erros
+
 
 # Exemplo de uso
 fita = '''
