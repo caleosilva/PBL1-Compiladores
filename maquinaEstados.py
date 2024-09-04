@@ -13,7 +13,9 @@ class AnalisadorLexico:
             "boolean", "string", "true", "false", "extends"
         ]
         self.delimiters = {'(': ')', '{': '}', '[': ']'}
-        self.delimiter_stack = []  # Pilha para verificar correspondência de delimitadores
+        self.identificadores = {}  # Tabela de identificadores com numeração
+        self.contador_identificadores = 0  # Contador para numeração crescente
+
 
     def is_letter(self, char):
         return char.isalpha()
@@ -63,11 +65,16 @@ class AnalisadorLexico:
             else:
                 # Verifica se é palavra-chave ou identificador
                 if self.lexema in self.keywords:
-                    self.tabela_de_simbolos.append(
-                        (self.lexema, "keyword", self.numero_da_linha))
+                    self.tabela_de_simbolos.append((self.lexema, "keyword", self.numero_da_linha))
                 else:
-                    self.tabela_de_simbolos.append(
-                        (self.lexema, "identifier", self.numero_da_linha))
+                    # Verifica se o identificador já existe na tabela de identificadores
+                    if self.lexema not in self.identificadores:
+                        self.contador_identificadores += 1
+                        self.identificadores[self.lexema] = self.contador_identificadores
+                    
+                    # Adiciona o número associado ao identificador na tabela de símbolos
+                    numero_associado = self.identificadores[self.lexema]
+                    self.tabela_de_simbolos.append((numero_associado, "identifier", self.numero_da_linha))
 
                 # Reseta o lexema e volta ao estado q0
                 self.lexema = ""
@@ -76,11 +83,17 @@ class AnalisadorLexico:
             # Finaliza o último token se houver
             if self.lexema:
                 if self.lexema in self.keywords:
-                    self.tabela_de_simbolos.append(
-                        (self.lexema, "keyword", self.numero_da_linha))
+                    self.tabela_de_simbolos.append((self.lexema, "keyword", self.numero_da_linha))
                 else:
-                    self.tabela_de_simbolos.append(
-                        (self.lexema, "identifier", self.numero_da_linha))
+                    # Verifica se o identificador já existe na tabela de identificadores
+                    if self.lexema not in self.identificadores:
+                        self.contador_identificadores += 1
+                        self.identificadores[self.lexema] = self.contador_identificadores
+                    
+                    # Adiciona o número associado ao identificador na tabela de símbolos
+                    numero_associado = self.identificadores[self.lexema]
+                    self.tabela_de_simbolos.append((numero_associado, "identifier", self.numero_da_linha))
+
 
     def q2(self):
         """Estado q2 vazio."""
@@ -165,18 +178,10 @@ class AnalisadorLexico:
         self.lexema = ""
         self.q0()  # Volta ao estado q0 para continuar a leitura
 
-    def verificar_fim_fita(self):
-        """Verifica se todos os delimitadores foram fechados ao final da fita."""
-        while self.delimiter_stack:
-            delimiter, line = self.delimiter_stack.pop()
-            self.erros.append(
-                (delimiter, f"Erro: Delimitador de abertura '{delimiter}' na linha {line} não foi fechado", line))
-
     def analisar(self):
         """Função para iniciar a análise."""
         self.q0()  # Começa no estado q0
-        self.verificar_fim_fita()  # Verifica correspondência de delimitadores no fim
-        return self.tabela_de_simbolos, self.erros
+        return self.tabela_de_simbolos, self.identificadores, self.erros
 
 
 # Exemplo de uso
@@ -186,11 +191,15 @@ main {
 }
 '''
 analisador = AnalisadorLexico(fita)
-tokens, erros = analisador.analisar()
+tokens, identificadores, erros = analisador.analisar()
 
 print("Tokens:")
 for token in tokens:
     print(token)
+
+print("\nIdentificadores:")
+for identificador, numero in identificadores.items():
+    print(f"{numero}: {identificador}")
 
 print("\nErros:")
 for erro in erros:

@@ -1,5 +1,7 @@
 // Verificar se os verificadores estão corretos em sua correspondencia:
 
+self.delimiter_stack = []  # Pilha para verificar correspondência de delimitadores
+
 def q5(self):
         """Estado q5 para tratar delimitadores."""
         char = self.fita[self.cabeca - 1]  # Caracter já avançado na fita
@@ -19,3 +21,18 @@ def q5(self):
         self.tabela_de_simbolos.append((char, "delimiter", self.numero_da_linha))
         self.lexema = ""
         self.q0()  # Volta ao estado q0 para continuar a leitura
+
+def verificar_fim_fita(self):
+        """Verifica se todos os delimitadores foram fechados ao final da fita."""
+        while self.delimiter_stack:
+            delimiter, line = self.delimiter_stack.pop()
+            self.erros.append(
+                (delimiter, f"Erro: Delimitador de abertura '{delimiter}' na linha {line} não foi fechado", line))
+
+def analisar(self):
+        """Função para iniciar a análise."""
+        self.q0()  # Começa no estado q0
+        self.verificar_fim_fita()  # Verifica correspondência de delimitadores no fim
+        return self.tabela_de_simbolos, self.erros
+
+====================================================================================================================================
