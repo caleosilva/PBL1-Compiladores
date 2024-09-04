@@ -3,4 +3,6 @@ class ExampleClass extends BaseClass {
     ExampleClass.falou("Meu nome /*eh*/ class")
     "// Teste aqui"
     // Teste la
+    4....5
+    2.9.abc123
 }
