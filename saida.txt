@@ -86,13 +86,13 @@ Descrição do erro
 
 ****Comentários****
 Tipo       | Linha inicial   | Conteúdo
-linha      | 1               |  Este é um comentário de linha
-bloco      | 3               | Este é um comentário de blocoque se estende por multiplas linhas.
-linha      | 10              |  Comentário de linha após uma declaração
-bloco      | 11              |  Comentário de bloco inline 
-linha      | 13              |  Teste de string não fechada:
-linha      | 16              |  Um caractere válido
+linha      | 1               |  Este eh um comentario de linha
+bloco      | 3               | Este eh um comentario de blocoque se estende por multiplas linhas.
+linha      | 10              |  Comentario de linha apos uma declaracao
+bloco      | 11              |  Comentario de bloco inline 
+linha      | 13              |  Teste de string nao fechada:
+linha      | 16              |  Um caractere valido
 linha      | 17              |  Erro: mais de um caractere
 linha      | 20              |  Mais operadores e um número decimal
-linha      | 24              |  Teste de comentário não fechado:
+linha      | 24              |  Teste de comentario nao fechado:
 
