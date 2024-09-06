@@ -3,7 +3,7 @@ class AnalisadorLexico:
         self.cabeca = 0  # Cabeça de leitura
         self.fita = ""  # Inicialmente vazia, será preenchida pelo conteúdo do arquivo
         self.numero_da_linha = numero_da_linha  # Número da linha do código sendo analisado
-        self.tabela_de_simbolos = []  # Tabela de símbolos encontrada
+        self.tabela_de_tokens = []  # Tabela de símbolos encontrada
         self.erros = []  # Lista de erros encontrados
         self.lexema = ""  # Lexema atual em construção
         self.identificadores = {}  # Dicionário para armazenar identificadores com números associados
@@ -17,7 +17,7 @@ class AnalisadorLexico:
         self.delimiter_stack = []  # Pilha para verificar correspondência de delimitadores
         self.operators = ['+', '-', '*', '/', '=', '>', '<', '!', '&', '|', '.', ';']
         self.comentarios = []  # Lista para armazenar os comentários encontrados
-        self.ler_arquivo(file_path)  # Lê o conteúdo do arquivo e armazena em fita
+        self.processar_entrada(file_path)  # Lê o conteúdo do arquivo e armazena em fita
 
 
 
@@ -31,13 +31,52 @@ class AnalisadorLexico:
         """Verifica se o caractere é um operador."""
         return char in self.operators
         
-    def ler_arquivo(self, file_path):
+    def processar_entrada(self, file_path):
         """Lê o arquivo e armazena o conteúdo na fita."""
         try:
             with open(file_path, 'r') as file:
                 self.fita = file.read()
         except IOError as e:
             print(f"Erro ao ler o arquivo: {e}")
+    
+    def processar_saida(self, output_path='saida.txt'):
+        """Gera um arquivo com a saída formatada das listas e dicionários."""
+        with open(output_path, 'w') as file:
+            # Especificar largura mínima para cada coluna
+            largura_lexema = 15
+            largura_classe = 12
+            largura_linha = 8
+            
+            # Escrever tabela de tokens
+            file.write("****Tabela de Tokens****\n")
+            file.write(f"{'linha'.ljust(largura_linha)} | {'classe'.ljust(largura_classe)} | {'lexema'.ljust(largura_lexema)} \n")
+            for token in self.tabela_de_tokens:
+                lexema, classe, linha = token
+                file.write(f"{str(linha).ljust(largura_linha)} | {classe.ljust(largura_classe)} | {str(lexema).ljust(largura_lexema)}\n")
+            file.write("\n")
+            
+            # Escrever identificadores
+            file.write("****Identificadores****\n")
+            file.write(f"{'Id'.ljust(5)} | {'lexema'.ljust(largura_lexema)}\n")
+            for identificador, numero in self.identificadores.items():
+                file.write(f"{str(numero).ljust(5)} | {str(identificador).ljust(largura_lexema)}\n")
+            file.write("\n")
+            
+            # Escrever erros
+            file.write("****Erros****\n")
+            file.write("Descrição do erro\n")
+            for erro in self.erros:
+                file.write(f"{erro}\n")
+            file.write("\n")
+            
+            # Escrever comentários
+            file.write("****Comentários****\n")
+            file.write(f"{'Tipo'.ljust(10)} | {'Conteúdo'}\n")
+            for comentario, tipo in self.comentarios:
+                file.write(f"{str(tipo).ljust(10)} | {comentario}\n")
+            file.write("\n")
+
+        print(f"Saída gerada no arquivo: {output_path}")
 
     def avancar_cabeca(self):
         """Avança a cabeça de leitura e atualiza o número da linha, se necessário."""
@@ -78,7 +117,6 @@ class AnalisadorLexico:
                 self.avancar_cabeca()
                 self.q0()  # Continua no estado q0 para ler o próximo caractere
 
-
     def q1(self):
         """Estado q1 para acumular letras, dígitos ou underscore."""
         if self.cabeca < len(self.fita):
@@ -90,7 +128,7 @@ class AnalisadorLexico:
             else:
                 # Verifica se é palavra-chave ou identificador
                 if self.lexema in self.keywords:
-                    self.tabela_de_simbolos.append((self.lexema, "keyword", self.numero_da_linha))
+                    self.tabela_de_tokens.append((self.lexema, "keyword", self.numero_da_linha))
                 else:
                     # Verifica se o identificador já existe na tabela de identificadores
                     if self.lexema not in self.identificadores:
@@ -99,7 +137,7 @@ class AnalisadorLexico:
                     
                     # Adiciona o número associado ao identificador na tabela de símbolos
                     numero_associado = self.identificadores[self.lexema]
-                    self.tabela_de_simbolos.append((numero_associado, "identifier", self.numero_da_linha))
+                    self.tabela_de_tokens.append((numero_associado, "identifier", self.numero_da_linha))
 
                 # Reseta o lexema e volta ao estado q0
                 self.lexema = ""
@@ -108,7 +146,7 @@ class AnalisadorLexico:
             # Finaliza o último token se houver
             if self.lexema:
                 if self.lexema in self.keywords:
-                    self.tabela_de_simbolos.append((self.lexema, "keyword", self.numero_da_linha))
+                    self.tabela_de_tokens.append((self.lexema, "keyword", self.numero_da_linha))
                 else:
                     # Verifica se o identificador já existe na tabela de identificadores
                     if self.lexema not in self.identificadores:
@@ -117,7 +155,7 @@ class AnalisadorLexico:
                     
                     # Adiciona o número associado ao identificador na tabela de símbolos
                     numero_associado = self.identificadores[self.lexema]
-                    self.tabela_de_simbolos.append((numero_associado, "identifier", self.numero_da_linha))
+                    self.tabela_de_tokens.append((numero_associado, "identifier", self.numero_da_linha))
 
     def q2(self):
         """Estado q2 para tratar operadores e detectar comentários."""
@@ -126,20 +164,20 @@ class AnalisadorLexico:
             if self.lexema == '/':  # Pode ser início de comentário
                 if char == '/':  # Comentário de linha
                     self.lexema += char
-                    self.tabela_de_simbolos.append(
+                    self.tabela_de_tokens.append(
                         (self.lexema, "comment_start", self.numero_da_linha))  # Adiciona '//' na tabela de símbolos
                     self.lexema = ""
                     self.avancar_cabeca()
                     self.q6(tipo='linha')  # Vai para o estado q6 para processar o comentário de linha
                 elif char == '*':  # Comentário de bloco
                     self.lexema += char
-                    self.tabela_de_simbolos.append(
+                    self.tabela_de_tokens.append(
                         (self.lexema, "comment_start", self.numero_da_linha))  # Adiciona '/*' na tabela de símbolos
                     self.lexema = ""
                     self.avancar_cabeca()
                     self.q6(tipo='bloco')  # Vai para o estado q6 para processar o comentário de bloco
                 else:
-                    self.tabela_de_simbolos.append(
+                    self.tabela_de_tokens.append(
                         (self.lexema, "operator", self.numero_da_linha))
                     self.lexema = ""
                     self.q0()  # Volta para o estado inicial após tratar o operador
@@ -147,12 +185,12 @@ class AnalisadorLexico:
                 if self.lexema + char in ['==', '!=', '>=', '<=', '&&', '||', '++', '--']:
                     self.lexema += char
                     self.avancar_cabeca()
-                self.tabela_de_simbolos.append(
+                self.tabela_de_tokens.append(
                     (self.lexema, "operator", self.numero_da_linha))
                 self.lexema = ""
                 self.q0()  # Volta para o estado inicial após tratar o operador
             else:
-                self.tabela_de_simbolos.append(
+                self.tabela_de_tokens.append(
                     (self.lexema, "operator", self.numero_da_linha))
                 self.lexema = ""
                 self.q0()  # Volta para o estado inicial após tratar o operador
@@ -174,7 +212,7 @@ class AnalisadorLexico:
             elif char == '"':  # Fim da string
                 self.lexema += char
                 self.avancar_cabeca()
-                self.tabela_de_simbolos.append(
+                self.tabela_de_tokens.append(
                     (self.lexema, "string", self.numero_da_linha))
                 self.lexema = ""
                 self.q0()  # Volta ao estado q0 após fechar a string
@@ -211,7 +249,7 @@ class AnalisadorLexico:
                 if self.cabeca < len(self.fita) and self.fita[self.cabeca] == "'":
                     self.lexema += "'"
                     self.avancar_cabeca()
-                    self.tabela_de_simbolos.append(
+                    self.tabela_de_tokens.append(
                         (self.lexema, "char", self.numero_da_linha))
                     self.lexema = ""
                     self.q0()  # Volta ao estado q0 após fechar o caractere
@@ -237,7 +275,7 @@ class AnalisadorLexico:
         char = self.fita[self.cabeca - 1]  # Caractere já avançado na fita
 
         if char in self.delimiters or char in self.delimiters.values() or char in [';', ',']:
-            self.tabela_de_simbolos.append(
+            self.tabela_de_tokens.append(
                 (char, "delimiter", self.numero_da_linha))
 
         self.lexema = ""
@@ -272,7 +310,7 @@ class AnalisadorLexico:
                     if self.cabeca < len(self.fita) and self.fita[self.cabeca] == '/':
                         self.avancar_cabeca()
                         self.comentarios.append((comentario, "bloco", linha_inicial))
-                        self.tabela_de_simbolos.append(('*/', "comment_end", self.numero_da_linha))
+                        self.tabela_de_tokens.append(('*/', "comment_end", self.numero_da_linha))
                         self.q0()  # Volta para o estado inicial após o fechamento do bloco
                         break
                     else:
@@ -301,20 +339,21 @@ class AnalisadorLexico:
                 self.avancar_cabeca()
             else:
                 # Se encontra qualquer outra coisa, encerra o número
-                self.tabela_de_simbolos.append((self.lexema, "number", self.numero_da_linha))
+                self.tabela_de_tokens.append((self.lexema, "number", self.numero_da_linha))
                 self.lexema = ""
                 self.q0()  # Volta para o estado inicial
                 return
 
         # Se a fita terminar enquanto ainda estamos no estado q7, finalize o número
         if self.lexema:
-            self.tabela_de_simbolos.append((self.lexema, "number", self.numero_da_linha))
+            self.tabela_de_tokens.append((self.lexema, "number", self.numero_da_linha))
             self.lexema = ""
 
     def analisar(self):
         """Função para iniciar a análise."""
         self.q0()  # Começa no estado q0
-        return self.tabela_de_simbolos, self.identificadores, self.erros, self.comentarios
+        self.processar_saida('saida.txt')
+        return self.tabela_de_tokens, self.identificadores, self.erros, self.comentarios
 
 
 
@@ -322,18 +361,18 @@ file_path = './t1.txt'
 analisador = AnalisadorLexico(file_path)
 tokens, identificadores, erros, comentarios = analisador.analisar()
 
-print("Tokens:")
-for token in tokens:
-    print(token)
+# print("Tokens:")
+# for token in tokens:
+#     print(token)
 
-print("\nIdentificadores:")
-for identificador, numero in identificadores.items():
-    print(f"{numero}: {identificador}")
+# print("\nIdentificadores:")
+# for identificador, numero in identificadores.items():
+#     print(f"{numero}: {identificador}")
 
-print("\nErros:")
-for erro in erros:
-    print(erro)
+# print("\nErros:")
+# for erro in erros:
+#     print(erro)
 
-print("\nComentários:")
-for comentario in comentarios:
-    print(comentario)
+# print("\nComentários:")
+# for comentario in comentarios:
+#     print(comentario)

@@ -1,0 +1,28 @@
+****Tabela de Tokens****
+linha    | classe       | lexema          
+1        | keyword      | class          
+1        | identifier   | 2              
+1        | keyword      | extends        
+1        | identifier   | 3              
+1        | delimiter    | {              
+2        | operator     | =              
+2        | operator     | !=             
+2        | operator     | ||             
+2        | operator     | .              
+2        | operator     | ++             
+2        | operator     | +              
+2        | operator     | -              
+2        | operator     | >=             
+3        | delimiter    | }              
+
+****Identificadores****
+Id    | lexema         
+2     | ExampleClass   
+3     | BaseClass      
+
+****Erros****
+Descrição do erro
+
+****Comentários****
+Tipo       | Conteúdo
+
