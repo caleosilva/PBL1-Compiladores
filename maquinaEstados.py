@@ -71,9 +71,9 @@ class AnalisadorLexico:
             
             # Escrever comentários
             file.write("****Comentários****\n")
-            file.write(f"{'Tipo'.ljust(10)} | {'Conteúdo'}\n")
-            for comentario, tipo in self.comentarios:
-                file.write(f"{str(tipo).ljust(10)} | {comentario}\n")
+            file.write(f"{'Tipo'.ljust(10)} | {'Linha inicial'.ljust(15)} | {'Conteúdo'}\n")
+            for comentario, tipo, linha in self.comentarios:
+                file.write(f"{str(tipo).ljust(10)} | {str(linha).ljust(15)} | {comentario}\n")
             file.write("\n")
 
         print(f"Saída gerada no arquivo: {output_path}")
@@ -357,22 +357,6 @@ class AnalisadorLexico:
 
 
 
-file_path = './t1.txt'
+file_path = './entrada.txt'
 analisador = AnalisadorLexico(file_path)
 tokens, identificadores, erros, comentarios = analisador.analisar()
-
-# print("Tokens:")
-# for token in tokens:
-#     print(token)
-
-# print("\nIdentificadores:")
-# for identificador, numero in identificadores.items():
-#     print(f"{numero}: {identificador}")
-
-# print("\nErros:")
-# for erro in erros:
-#     print(erro)
-
-# print("\nComentários:")
-# for comentario in comentarios:
-#     print(comentario)

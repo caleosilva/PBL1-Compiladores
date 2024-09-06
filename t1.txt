@@ -1,3 +1,0 @@
-class ExampleClass extends BaseClass {
-    =!=||.+++->=
-}

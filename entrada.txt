@@ -1,0 +1,26 @@
+// Este é um comentário de linha
+
+/*
+Este é um comentário de bloco
+que se estende por multiplas linhas.
+*/
+
+class ExampleClass {
+    int variavel = 10;
+    float pi = 3.14;  // Comentário de linha após uma declaração
+    string nome = "Joao";  /* Comentário de bloco inline */
+
+    // Teste de string não fechada:
+    string erroString = "Este eh um erro;
+
+    char caractere = 'a';  // Um caractere válido
+    char erroChar = 'ab';  // Erro: mais de um caractere
+
+    if (variavel == 10 && pi != 3.0) {
+        // Mais operadores e um número decimal
+        variavel = variavel + 1;
+    }
+    
+    // Teste de comentário não fechado:
+    /* Este é um comentário de bloco não fechado
+}
