@@ -16,6 +16,7 @@ class AnalisadorLexico:
         self.delimiters = {'(': ')', '{': '}', '[': ']'}
         self.delimiter_stack = []  # Pilha para verificar correspondência de delimitadores
         self.operators = ['+', '-', '*', '/', '=', '>', '<', '!', '&', '|', '.', ';']
+        self.comentarios = []  # Lista para armazenar os comentários encontrados
         self.ler_arquivo(file_path)  # Lê o conteúdo do arquivo e armazena em fita
 
 
@@ -119,18 +120,24 @@ class AnalisadorLexico:
                     self.tabela_de_simbolos.append((numero_associado, "identifier", self.numero_da_linha))
 
     def q2(self):
-        """Estado q2 para tratar operadores."""
+        """Estado q2 para tratar operadores e detectar comentários."""
         if self.cabeca < len(self.fita):
             char = self.fita[self.cabeca]
             if self.lexema == '/':  # Pode ser início de comentário
-                if char == '/':
+                if char == '/':  # Comentário de linha
                     self.lexema += char
+                    self.tabela_de_simbolos.append(
+                        (self.lexema, "comment_start", self.numero_da_linha))  # Adiciona '//' na tabela de símbolos
+                    self.lexema = ""
                     self.avancar_cabeca()
-                    self.q6(tipo='linha')  # Comentário de linha
-                elif char == '*':
+                    self.q6(tipo='linha')  # Vai para o estado q6 para processar o comentário de linha
+                elif char == '*':  # Comentário de bloco
                     self.lexema += char
+                    self.tabela_de_simbolos.append(
+                        (self.lexema, "comment_start", self.numero_da_linha))  # Adiciona '/*' na tabela de símbolos
+                    self.lexema = ""
                     self.avancar_cabeca()
-                    self.q6(tipo='bloco')  # Comentário de bloco
+                    self.q6(tipo='bloco')  # Vai para o estado q6 para processar o comentário de bloco
                 else:
                     self.tabela_de_simbolos.append(
                         (self.lexema, "operator", self.numero_da_linha))
@@ -237,20 +244,26 @@ class AnalisadorLexico:
         self.q0()  # Volta ao estado q0 para continuar a leitura
 
     def q6(self, tipo):
-        """Estado q6 para tratar comentários."""
+        """Estado q6 para processar o conteúdo de comentários."""
         if tipo == 'linha':
+            comentario = ""
             while self.cabeca < len(self.fita):
                 char = self.fita[self.cabeca]
                 if char == '\n':  # Fim do comentário de linha
+                    self.comentarios.append((comentario, "linha", self.numero_da_linha))
                     self.avancar_cabeca()
                     self.q0()  # Volta para o estado inicial após o comentário de linha
                     break
                 else:
-                    self.avancar_cabeca()  # Continua consumindo o comentário
+                    comentario += char
+                    self.avancar_cabeca()
             else:
-                self.q0()  # Fim do arquivo, retorna ao estado inicial
+                # Se terminar o arquivo sem encontrar o fim do comentário
+                self.comentarios.append((comentario, "linha", self.numero_da_linha))
+                self.q0()
 
         elif tipo == 'bloco':
+            comentario = ""
             linha_inicial = self.numero_da_linha  # Armazena a linha onde o bloco começou
             while self.cabeca < len(self.fita):
                 char = self.fita[self.cabeca]
@@ -258,9 +271,15 @@ class AnalisadorLexico:
                     self.avancar_cabeca()
                     if self.cabeca < len(self.fita) and self.fita[self.cabeca] == '/':
                         self.avancar_cabeca()
+                        self.comentarios.append((comentario, "bloco", linha_inicial))
+                        self.tabela_de_simbolos.append(('*/', "comment_end", self.numero_da_linha))
                         self.q0()  # Volta para o estado inicial após o fechamento do bloco
                         break
+                    else:
+                        comentario += '*'
                 else:
+                    if char != '\n':
+                        comentario += char
                     self.avancar_cabeca()
             else:
                 # Se não encontrar o fechamento do bloco até o final do arquivo, gera um erro
@@ -295,12 +314,13 @@ class AnalisadorLexico:
     def analisar(self):
         """Função para iniciar a análise."""
         self.q0()  # Começa no estado q0
-        return self.tabela_de_simbolos, self.identificadores, self.erros
+        return self.tabela_de_simbolos, self.identificadores, self.erros, self.comentarios
+
 
 
 file_path = './t1.txt'
 analisador = AnalisadorLexico(file_path)
-tokens, identificadores, erros = analisador.analisar()
+tokens, identificadores, erros, comentarios = analisador.analisar()
 
 print("Tokens:")
 for token in tokens:
@@ -314,7 +334,6 @@ print("\nErros:")
 for erro in erros:
     print(erro)
 
-
-
-
-# ATENÇÃO: DEVE DAR UM STRIP PARA REMOVER OS /N, JÁ QUE NO COMENTARIO EM BLOCO ELE APARECE. OU SERIA MELHOR TRATAR ISSO ESPECIFICO DO COMENTARIO?
+print("\nComentários:")
+for comentario in comentarios:
+    print(comentario)

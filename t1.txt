@@ -1,7 +1,3 @@
 class ExampleClass extends BaseClass {
-    
-    /*4....5
-    2.9.abc123*/
-
-    // Teste la
+    =!=||.+++->=
 }
