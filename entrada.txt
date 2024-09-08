@@ -6,21 +6,30 @@ que se estende por multiplas linhas.
 */
 
 class ExampleClass {
-    int variavel = 10;
-    float pi = 3.14;  // Comentario de linha apos uma declaracao
-    string nome = "Joao";  /* Comentario de bloco inline */
+    variavel = 10;
+    pi = 3.14;  // Comentario de linha apos uma declaracao
+    nome = "Joao";  /* Comentario de bloco inline */
 
     // Teste de string nao fechada:
-    string erroString = "Este eh um erro;
+    erroString = "Este eh um erro;
 
-    char caractere = 'a';  // Um caractere valido
-    char erroChar = 'ab';  // Erro: mais de um caractere
+    caractere = 'a';  // Um caractere valido
+    erroChar = 'a;  // Erro: Caractere aberto
 
     if (variavel == 10 && pi != 3.0) {
         // Mais operadores e um número decimal
         variavel = variavel + 1;
     }
+
+    while pi < 3 {
+        variavel--
+    }
     
     // Teste de comentario nao fechado:
-    /* Este eh um comentario de bloco nao fechado
 }
+
+/* Este eh um comentario de bloco nao fechado
+essas
+linhas
+serão
+consumidas 

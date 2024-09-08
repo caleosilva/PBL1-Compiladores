@@ -80,10 +80,20 @@ class AnalisadorLexico:
 
     def avancar_cabeca(self):
         """Avança a cabeça de leitura e atualiza o número da linha, se necessário."""
-        if self.cabeca < len(self.fita):
+        if self.cabeca < len(self.fita) - 1:
             if self.fita[self.cabeca] == '\n':
                 self.numero_da_linha += 1
             self.cabeca += 1
+
+            if self.fita[self.cabeca] != '\n' and self.fita[self.cabeca] != '\t' and not (32 <= ord(self.fita[self.cabeca]) and ord(self.fita[self.cabeca]) <= 126):
+                self.erros.append(
+                    (self.fita[self.cabeca], "Erro: Caractere não permitido", self.numero_da_linha))
+                
+                self.cabeca += 1
+
+        else:
+            self.cabeca += 1
+            self.q0
 
     def q0(self):
         """Estado inicial q0."""
@@ -206,9 +216,17 @@ class AnalisadorLexico:
                 self.lexema = ""
                 self.q0()  # Volta ao estado q0 após emitir o erro
                 break
-            elif 32 <= ord(char) <= 126 and char not in ('"', "'"):
+
+            elif self.cabeca >= len(self.fita) - 1 and self.lexema:
+                # Fim da fita e string não foi fechada
+                self.erros.append(
+                    (self.lexema, "Erro: String não fechada antes do fim da fita", linha_inicial))
+                self.avancar_cabeca()
+
+            elif 32 <= ord(char) <= 126 and char not in ('"', "'"): # adicionar char a char
                 self.lexema += char
                 self.avancar_cabeca()
+
             elif char == '"':  # Fim da string
                 self.lexema += char
                 self.avancar_cabeca()
@@ -217,21 +235,19 @@ class AnalisadorLexico:
                 self.lexema = ""
                 self.q0()  # Volta ao estado q0 após fechar a string
                 break
+            
             elif char == "'":  # Erro: Aspas simples dentro da string
                 self.erros.append(
                     (self.lexema + char, "Erro: Aspas simples em string", self.numero_da_linha))
+                
                 self.lexema += char  # Continua adicionando ao lexema
                 self.avancar_cabeca()
             else:
                 self.erros.append(
                     (self.lexema, "Erro: String não fechada", self.numero_da_linha))
+                
                 self.lexema = ""
                 break
-
-        if self.cabeca >= len(self.fita) and self.lexema:
-            # Fim da fita e string não foi fechada
-            self.erros.append(
-                (self.lexema, "Erro: String não fechada antes do fim da fita", linha_inicial))
 
     def q4(self):
         """Estado q4 para tratar caracteres."""
@@ -240,6 +256,7 @@ class AnalisadorLexico:
             if char == '"':  # Erro: Aspas duplas dentro de um caractere
                 self.erros.append(
                     (self.lexema + char, "Erro: Aspas duplas em caractere", self.numero_da_linha))
+                
                 self.lexema = ""
                 self.avancar_cabeca()
                 self.q0()  # Retorna ao estado q0 para continuar a análise
@@ -256,19 +273,23 @@ class AnalisadorLexico:
                 else:
                     self.erros.append(
                         (self.lexema, "Erro: Caractere não fechado", self.numero_da_linha))
+                    
                     self.lexema = ""
                     self.q0()  # Continua a análise no estado q0
             else:
                 self.erros.append(
                     (self.lexema + char, "Erro: Caractere inválido", self.numero_da_linha))
+                
+                    
                 self.lexema = ""
                 self.avancar_cabeca()
                 self.q0()  # Retorna ao estado q0 para continuar a análise
 
-        if self.cabeca >= len(self.fita):
+        elif self.cabeca >= len(self.fita):
             # Fim da fita e caractere não foi fechado
             self.erros.append(
                 (self.lexema, "Erro: Caractere não fechado", self.numero_da_linha))
+                  
 
     def q5(self):
         """Estado q5 simplificado para tratar delimitadores."""
@@ -323,6 +344,8 @@ class AnalisadorLexico:
                 # Se não encontrar o fechamento do bloco até o final do arquivo, gera um erro
                 self.erros.append(
                     ("/*", "Erro: Bloco de comentário não fechado", linha_inicial))
+                
+                    
                 self.q0()  # Volta para o estado inicial após emitir o erro
 
     def q7(self):
@@ -356,7 +379,8 @@ class AnalisadorLexico:
         return self.tabela_de_tokens, self.identificadores, self.erros, self.comentarios
 
 
-
 file_path = './entrada.txt'
 analisador = AnalisadorLexico(file_path)
 tokens, identificadores, erros, comentarios = analisador.analisar()
+
+input()
