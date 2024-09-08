@@ -19,8 +19,6 @@ class AnalisadorLexico:
         self.comentarios = []  # Lista para armazenar os comentários encontrados
         self.processar_entrada(file_path)  # Lê o conteúdo do arquivo e armazena em fita
 
-
-
     def is_letter(self, char):
         return char.isalpha()
 
@@ -36,6 +34,7 @@ class AnalisadorLexico:
         try:
             with open(file_path, 'r') as file:
                 self.fita = file.read()
+                self.fita += " "
         except IOError as e:
             print(f"Erro ao ler o arquivo: {e}")
     
@@ -44,86 +43,80 @@ class AnalisadorLexico:
         with open(output_path, 'w') as file:
             # Especificar largura mínima para cada coluna
             largura_lexema = 15
-            largura_classe = 12
+            largura_classe = 15
             largura_linha = 8
             
             # Escrever tabela de tokens
-            file.write("****Tabela de Tokens****\n")
-            file.write(f"{'linha'.ljust(largura_linha)} | {'classe'.ljust(largura_classe)} | {'lexema'.ljust(largura_lexema)} \n")
+            file.write("**** Tabela de Tokens ****\n")
+            file.write(f"{'Linha'.ljust(largura_linha)} | {'Classe'.ljust(largura_classe)} | {'Lexema'.ljust(largura_lexema)} \n")
             for token in self.tabela_de_tokens:
                 lexema, classe, linha = token
                 file.write(f"{str(linha).ljust(largura_linha)} | {classe.ljust(largura_classe)} | {str(lexema).ljust(largura_lexema)}\n")
             file.write("\n")
             
             # Escrever identificadores
-            file.write("****Identificadores****\n")
+            file.write("**** Identificadores ****\n")
             file.write(f"{'Id'.ljust(5)} | {'lexema'.ljust(largura_lexema)}\n")
             for identificador, numero in self.identificadores.items():
                 file.write(f"{str(numero).ljust(5)} | {str(identificador).ljust(largura_lexema)}\n")
             file.write("\n")
             
             # Escrever erros
-            file.write("****Erros****\n")
-            file.write("Descrição do erro\n")
-            for erro in self.erros:
-                file.write(f"{erro}\n")
+            file.write("**** Erros ****\n")
+            file.write(f"{'Linha'.ljust(7)} | {'Tipo'.ljust(50)} | {'Lexema'}\n")
+            for lexema, tipo, linha in self.erros:
+                # file.write(f"{erro}\n")
+                file.write(f"{str(linha).ljust(7)} | {str(tipo).ljust(50)} | {lexema}\n")
             file.write("\n")
             
             # Escrever comentários
-            file.write("****Comentários****\n")
-            file.write(f"{'Tipo'.ljust(10)} | {'Linha inicial'.ljust(15)} | {'Conteúdo'}\n")
+            file.write("**** Comentários ****\n")
+            file.write(f"{'Tipo'.ljust(10)} | {'Linha '.ljust(7)} | {'Conteúdo'}\n")
             for comentario, tipo, linha in self.comentarios:
-                file.write(f"{str(tipo).ljust(10)} | {str(linha).ljust(15)} | {comentario}\n")
+                file.write(f"{str(tipo).ljust(10)} | {str(linha).ljust(7)} | {comentario}\n")
             file.write("\n")
 
         print(f"Saída gerada no arquivo: {output_path}")
 
     def avancar_cabeca(self):
         """Avança a cabeça de leitura e atualiza o número da linha, se necessário."""
-        if self.cabeca < len(self.fita) - 1:
+        if self.cabeca < len(self.fita):
             if self.fita[self.cabeca] == '\n':
                 self.numero_da_linha += 1
             self.cabeca += 1
 
-            if self.fita[self.cabeca] != '\n' and self.fita[self.cabeca] != '\t' and not (32 <= ord(self.fita[self.cabeca]) and ord(self.fita[self.cabeca]) <= 126):
-                self.erros.append(
-                    (self.fita[self.cabeca], "Erro: Caractere não permitido", self.numero_da_linha))
-                
-                self.cabeca += 1
-
-        else:
-            self.cabeca += 1
-            self.q0
-
+            if self.cabeca < len(self.fita) - 1:
+                if self.fita[self.cabeca] != '\n' and self.fita[self.cabeca] != '\t' and not (32 <= ord(self.fita[self.cabeca]) and ord(self.fita[self.cabeca]) <= 126):
+                    self.erros.append(
+                        (self.fita[self.cabeca], "Erro: Caractere não permitido", self.numero_da_linha))
+                    self.cabeca += 1
+        
     def q0(self):
         """Estado inicial q0."""
         if self.cabeca < len(self.fita):
             char = self.fita[self.cabeca]
+            self.lexema += char
+            
             if self.is_letter(char):
-                self.lexema += char
                 self.avancar_cabeca()
                 self.q1()  # Transição direta para q1
             elif self.is_operator(char):
-                self.lexema += char
                 self.avancar_cabeca()
                 self.q2()  # Transição direta para q2 
             elif char == '"':  # Início de uma string
-                self.lexema += char
                 self.avancar_cabeca()
                 self.q3()  # Transição direta para q3
             elif char == "'":  # Início de um caractere
-                self.lexema += char
                 self.avancar_cabeca()
                 self.q4()  # Transição direta para q4
             elif char in self.delimiters or char in self.delimiters.values() or char in [';', ',']:
-                self.lexema += char
                 self.avancar_cabeca()
                 self.q5()  # Transição direta para q5
             elif self.is_digit(char):  # Início de um número
-                self.lexema += char
                 self.avancar_cabeca()
                 self.q7()  # Transição direta para q7
             else:
+                self.lexema = ""
                 self.avancar_cabeca()
                 self.q0()  # Continua no estado q0 para ler o próximo caractere
 
@@ -279,8 +272,6 @@ class AnalisadorLexico:
             else:
                 self.erros.append(
                     (self.lexema + char, "Erro: Caractere inválido", self.numero_da_linha))
-                
-                    
                 self.lexema = ""
                 self.avancar_cabeca()
                 self.q0()  # Retorna ao estado q0 para continuar a análise
@@ -288,8 +279,7 @@ class AnalisadorLexico:
         elif self.cabeca >= len(self.fita):
             # Fim da fita e caractere não foi fechado
             self.erros.append(
-                (self.lexema, "Erro: Caractere não fechado", self.numero_da_linha))
-                  
+                (self.lexema, "Erro: Caractere não fechado", self.numero_da_linha))     
 
     def q5(self):
         """Estado q5 simplificado para tratar delimitadores."""
@@ -344,8 +334,6 @@ class AnalisadorLexico:
                 # Se não encontrar o fechamento do bloco até o final do arquivo, gera um erro
                 self.erros.append(
                     ("/*", "Erro: Bloco de comentário não fechado", linha_inicial))
-                
-                    
                 self.q0()  # Volta para o estado inicial após emitir o erro
 
     def q7(self):
@@ -353,13 +341,16 @@ class AnalisadorLexico:
         has_dot = False  # Flag para verificar se já existe um ponto decimal
         while self.cabeca < len(self.fita):
             char = self.fita[self.cabeca]
+
             if self.is_digit(char):
                 self.lexema += char
                 self.avancar_cabeca()
-            elif char == '.' and not has_dot:
+
+            elif char == '.' and not has_dot and (self.cabeca < len(self.fita) - 2) and self.is_digit(self.fita[self.cabeca + 1]):
                 self.lexema += char
                 has_dot = True  # Marca que um ponto decimal foi encontrado
                 self.avancar_cabeca()
+
             else:
                 # Se encontra qualquer outra coisa, encerra o número
                 self.tabela_de_tokens.append((self.lexema, "number", self.numero_da_linha))
@@ -377,7 +368,6 @@ class AnalisadorLexico:
         self.q0()  # Começa no estado q0
         self.processar_saida('saida.txt')
         return self.tabela_de_tokens, self.identificadores, self.erros, self.comentarios
-
 
 file_path = './entrada.txt'
 analisador = AnalisadorLexico(file_path)

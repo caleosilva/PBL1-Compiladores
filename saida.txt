@@ -1,96 +1,110 @@
-****Tabela de Tokens****
-linha    | classe       | lexema          
-1        | comment_start | //             
-3        | comment_start | /*             
-6        | comment_end  | */             
-8        | keyword      | class          
-8        | identifier   | 2              
-8        | delimiter    | {              
-9        | identifier   | 3              
-9        | operator     | =              
-9        | number       | 10             
-9        | operator     | ;              
-10       | identifier   | 4              
-10       | operator     | =              
-10       | number       | 3.14           
-10       | operator     | ;              
-10       | comment_start | //             
-11       | identifier   | 5              
-11       | operator     | =              
-11       | string       | "Joao"         
-11       | operator     | ;              
-11       | comment_start | /*             
-11       | comment_end  | */             
-13       | comment_start | //             
-14       | identifier   | 6              
-14       | operator     | =              
-16       | identifier   | 7              
-16       | operator     | =              
-16       | char         | 'a'            
-16       | operator     | ;              
-16       | comment_start | //             
-17       | identifier   | 8              
-17       | operator     | =              
-17       | operator     | ;              
-17       | comment_start | //             
-19       | keyword      | if             
-19       | delimiter    | (              
-19       | identifier   | 3              
-19       | operator     | ==             
-19       | number       | 10             
-19       | operator     | &&             
-19       | identifier   | 4              
-19       | operator     | !=             
-19       | number       | 3.0            
-19       | delimiter    | )              
-19       | delimiter    | {              
-20       | comment_start | //             
-21       | identifier   | 3              
-21       | operator     | =              
-21       | identifier   | 3              
-21       | operator     | +              
-21       | number       | 1              
-21       | operator     | ;              
-22       | delimiter    | }              
-24       | keyword      | while          
-24       | identifier   | 4              
-24       | operator     | <              
-24       | number       | 3              
-24       | delimiter    | {              
-25       | identifier   | 3              
-25       | operator     | --             
-26       | delimiter    | }              
-28       | comment_start | //             
-29       | delimiter    | }              
-31       | comment_start | /*             
+**** Tabela de Tokens ****
+Linha    | Classe          | Lexema          
+1        | comment_start   | //             
+3        | comment_start   | /*             
+6        | comment_end     | */             
+8        | keyword         | class          
+8        | identifier      | 2              
+8        | delimiter       | {              
+9        | identifier      | 3              
+9        | operator        | =              
+9        | number          | 10             
+9        | operator        | ;              
+10       | identifier      | 4              
+10       | operator        | =              
+10       | number          | 3.14           
+10       | operator        | ;              
+10       | comment_start   | //             
+11       | identifier      | 5              
+11       | operator        | =              
+11       | number          | 3              
+11       | operator        | .              
+11       | identifier      | 6              
+11       | operator        | ;              
+11       | comment_start   | //             
+13       | identifier      | 7              
+13       | identifier      | 7              
+15       | comment_start   | /*             
+15       | comment_end     | */             
+17       | identifier      | 8              
+17       | operator        | =              
+17       | string          | "Joao"         
+17       | operator        | ;              
+17       | comment_start   | //             
+18       | identifier      | 9              
+18       | operator        | =              
+20       | identifier      | 10             
+20       | operator        | =              
+20       | char            | 'a'            
+20       | operator        | ;              
+20       | comment_start   | //             
+21       | identifier      | 11             
+21       | operator        | =              
+21       | operator        | ;              
+21       | comment_start   | //             
+23       | keyword         | if             
+23       | delimiter       | (              
+23       | identifier      | 3              
+23       | operator        | ==             
+23       | number          | 10             
+23       | operator        | &&             
+23       | identifier      | 4              
+23       | operator        | !=             
+23       | number          | 3.0            
+23       | delimiter       | )              
+23       | delimiter       | {              
+24       | comment_start   | //             
+25       | identifier      | 3              
+25       | operator        | =              
+25       | identifier      | 3              
+25       | operator        | +              
+25       | number          | 1              
+25       | operator        | ;              
+26       | delimiter       | }              
+28       | keyword         | while          
+28       | identifier      | 4              
+28       | operator        | <=             
+28       | number          | 3              
+28       | delimiter       | {              
+29       | identifier      | 3              
+29       | operator        | --             
+30       | identifier      | 3              
+30       | operator        | ++             
+31       | delimiter       | }              
+33       | comment_start   | //             
+34       | delimiter       | }              
+36       | comment_start   | /*             
 
-****Identificadores****
+**** Identificadores ****
 Id    | lexema         
 2     | ExampleClass   
 3     | variavel       
 4     | pi             
-5     | nome           
-6     | erroString     
-7     | caractere      
-8     | erroChar       
+5     | pu             
+6     | a4             
+7     | a              
+8     | stringCerta    
+9     | erroString     
+10    | caractere      
+11    | erroChar       
 
-****Erros****
-Descrição do erro
-('"Este eh um erro;', 'Erro: String não fechada antes do fim da linha', 14)
-("'a", 'Erro: Caractere não fechado', 17)
-('Ã', 'Erro: Caractere não permitido', 20)
-('Ã', 'Erro: Caractere não permitido', 34)
-('/*', 'Erro: Bloco de comentário não fechado', 31)
+**** Erros ****
+Linha   | Tipo                                               | Lexema
+18      | Erro: String não fechada antes do fim da linha     | "Este eh um erro; // String invalida
+21      | Erro: Caractere não fechado                        | 'a
+33      | Erro: Caractere não permitido                      | Ã
+36      | Erro: Bloco de comentário não fechado              | /*
 
-****Comentários****
-Tipo       | Linha inicial   | Conteúdo
-linha      | 1               |  Este eh um comentario de linha
-bloco      | 3               | Este eh um comentario de blocoque se estende por multiplas linhas.
-linha      | 10              |  Comentario de linha apos uma declaracao
-bloco      | 11              |  Comentario de bloco inline 
-linha      | 13              |  Teste de string nao fechada:
-linha      | 16              |  Um caractere valido
-linha      | 17              |  Erro: Caractere aberto
-linha      | 20              |  Mais operadores e um nºmero decimal
-linha      | 28              |  Teste de comentario nao fechado:
+**** Comentários ****
+Tipo       | Linha   | Conteúdo
+linha      | 1       |  Este eh um comentario de linha
+bloco      | 3       | Este eh um comentario de blocoque se estende por multiplas linhas.
+linha      | 10      |  Comentario de linha apos uma declaracao
+linha      | 11      |  Isso nao deve ser considerado um unico numero, mas um numero, um operador e um identificador
+bloco      | 15      |  Comentario de bloco inline 
+linha      | 17      |  String valida
+linha      | 20      |  Caractere valido
+linha      | 21      |  Erro: Caractere aberto
+linha      | 24      |  Mais operadores e um numero decimal
+linha      | 33      |  Caractere invalido -> ƒ
 

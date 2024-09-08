@@ -8,28 +8,32 @@ que se estende por multiplas linhas.
 class ExampleClass {
     variavel = 10;
     pi = 3.14;  // Comentario de linha apos uma declaracao
-    nome = "Joao";  /* Comentario de bloco inline */
+    pu = 3.a4; // Isso nao deve ser considerado um unico numero, mas um numero, um operador e um identificador
+    
+    /* Comentario de bloco inline */
 
-    // Teste de string nao fechada:
-    erroString = "Este eh um erro;
+    stringCerta = "Joao";  // String valida
+    erroString = "Este eh um erro; // String invalida
 
-    caractere = 'a';  // Um caractere valido
+    caractere = 'a';  // Caractere valido
     erroChar = 'a;  // Erro: Caractere aberto
 
     if (variavel == 10 && pi != 3.0) {
-        // Mais operadores e um número decimal
+        // Mais operadores e um numero decimal
         variavel = variavel + 1;
     }
 
-    while pi < 3 {
+    while pi <= 3 {
         variavel--
+        variavel++
     }
     
-    // Teste de comentario nao fechado:
+    // Caractere invalido -> Ã
 }
 
 /* Este eh um comentario de bloco nao fechado
 essas
 linhas
-serão
-consumidas 
+devem
+ser
+consumidas
